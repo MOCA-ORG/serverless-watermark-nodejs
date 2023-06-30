@@ -1,0 +1,56 @@
+service: serverless-watermark-nodejs
+
+frameworkVersion: '3'
+
+plugins:
+  - serverless-offline
+
+provider:
+  stage: ${opt:stage, 'dev'}
+  name: aws
+  region: ap-northeast-1
+  runtime: nodejs18.x
+  architecture: x86_64
+  memorySize: 512
+  tags:
+    IaC: yes
+    Managed: serverless
+    ENV: ${self:provider.stage}
+    Usage: watermark
+  timeout: 10
+  logRetentionInDays: 30
+  logs:
+    httpApi:
+      format: '{ "requestId":"$context.requestId", "ip": "$context.identity.sourceIp", "requestTime":"$context.requestTime", "httpMethod":"$context.httpMethod", "routeKey":"$context.routeKey", "path": "$context.path", "status":"$context.status", "protocol":"$context.protocol", "responseLength":"$context.responseLength" }'
+  iam:
+    role:
+      name: serverless-watermark-role-${self:provider.stage}-nodejs
+      statements:
+        - Effect: "Allow"
+          Action:
+            - "s3:GetObject"
+          Resource:
+            - "arn:aws:s3:::serverless-watermark/*"
+
+functions:
+  main:
+    description: "Watermarking images with API Gateway and lambda."
+    handler: handler.handler
+    reservedConcurrency: 1
+    environment:
+      S3_BUCKET_NAME: "serverless-watermark"
+      WATERMARK_IMAGE_NAME: "watermark.png"
+    events:
+      - httpApi:
+          path: /watermark/{image_key+}
+          method: get
+
+package:
+  patterns:
+    - "!.vscode/**"
+    - "!.idea/**"
+    - "!.git/**"
+    - "!.gitignore"
+    - "!.serverless"
+    - "!.serverless/**"
+    - "!README.md"
