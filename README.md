@@ -1,6 +1,8 @@
 # Serverless Watermark Node.js
 Watermarking images with Node.js, lambda, api gateway, serverless framework.
 
+[Qiita](https://qiita.com/haxidoi/items/b278237d5aebfa889303)
+
 ## Dependence
 ### serverless
 ```shell
